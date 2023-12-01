@@ -11,6 +11,10 @@ export interface OnClickCallback {
   (ctx: CanvasRenderingContext2D, point: Point, prevPoint: Point): void;
 }
 
+export interface OnFillCallback {
+  (ctx: CanvasRenderingContext2D, point: Point, prevPoint: Point): void;
+}
+
 export type Point = {
   x: number;
   y: number;

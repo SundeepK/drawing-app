@@ -1,6 +1,6 @@
 "use client"
 import { MutableRefObject, useEffect, useRef } from "react";
-import { OnCanvasClear, OnClickCallback, OnDrawCallback, Point } from "@/app/types";
+import { OnCanvasClear, OnClickCallback, OnDrawCallback, OnFillCallback, Point } from "@/app/types";
 import { func } from "prop-types";
 
 type MousePosition = {
@@ -21,11 +21,12 @@ interface MouseClickListener {
 }
 
 
-export function useOnDraw(onDraw: OnDrawCallback, onclick: OnClickCallback, onCanvasClear: OnCanvasClear) {
+export function useOnDraw(onDraw: OnDrawCallback, onclick: OnClickCallback, onCanvasClear: OnCanvasClear, onFill: OnFillCallback) {
 
   const canvasRef: MutableRefObject<HTMLCanvasElement> | MutableRefObject<null> = useRef(null);
   const isDrawingRef = useRef(false);
   const isClick = useRef(false);
+  const isFill = useRef(false);
   const prevPointRef: MutableRefObject<Point> | MutableRefObject<null> = useRef(null);
 
   const mouseMoveListenerRef: MutableRefObject<MouseMoveListener> | MutableRefObject<null> = useRef(null);
@@ -53,6 +54,11 @@ export function useOnDraw(onDraw: OnDrawCallback, onclick: OnClickCallback, onCa
     isClick.current = true;
   }
 
+
+  function onFillClick() {
+    isFill.current = true;
+  }
+
   useEffect(() => {
     function computePointInCanvas(clientX: number, clientY: number): Point | null {
       if (canvasRef.current) {
@@ -74,7 +80,6 @@ export function useOnDraw(onDraw: OnDrawCallback, onclick: OnClickCallback, onCa
           const ctx = canvasRef.current.getContext('2d');
           if (onDraw && ctx && point) onDraw(ctx, point, prevPointRef.current!);
           prevPointRef.current = point;
-          console.log(point);
         }
       }
       mouseMoveListenerRef.current = mouseMoveListener;
@@ -92,13 +97,20 @@ export function useOnDraw(onDraw: OnDrawCallback, onclick: OnClickCallback, onCa
 
     function initMouseOnClickListener() {
       const mouseClickListener = (e: { clientX: number; clientY: number; }) => {
-        if (isClick.current && canvasRef.current) {
-          const point = computePointInCanvas(e.clientX, e.clientY);
-          const ctx = canvasRef.current.getContext('2d');
-          if (onclick && ctx && point) onclick(ctx, point, prevPointRef.current!);
-          prevPointRef.current = point;
-          console.log(point);
+        if (canvasRef.current) {
+          if (isClick.current) {
+            const point = computePointInCanvas(e.clientX, e.clientY);
+            const ctx = canvasRef.current.getContext('2d');
+            if (isFill.current && ctx && point) {
+              onFill(ctx, point, prevPointRef.current!)
+              isFill.current = false;
+            } else if (onclick && ctx && point) {
+              onclick(ctx, point, prevPointRef.current!);
+            }
+            prevPointRef.current = point;
+          }
         }
+
       }
       mouseClickListenerRef.current = mouseClickListener;
       window.addEventListener("mousedown", mouseClickListener);
@@ -110,6 +122,9 @@ export function useOnDraw(onDraw: OnDrawCallback, onclick: OnClickCallback, onCa
       }
       if (mouseUpListenerRef.current) {
         window.removeEventListener("mouseup", mouseUpListenerRef.current);
+      }
+      if (mouseUpListenerRef.current) {
+        window.removeEventListener("mousedown", mouseUpListenerRef.current);
       }
     }
 
@@ -124,6 +139,7 @@ export function useOnDraw(onDraw: OnDrawCallback, onclick: OnClickCallback, onCa
     setCanvasRef,
     onCanvasMouseDown,
     onCanvasClick,
+    onFillClick,
     onClearCanvas
   }
 }

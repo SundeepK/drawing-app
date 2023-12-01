@@ -17,8 +17,8 @@ export default function Home() {
   return (
     <main className={styles.main}>
       <p>Hello world</p>
-      <Canvas width={770}
-              height={700}
+      <Canvas width={500}
+              height={500}
               canvasStyle={canvasStyle}
       />
     </main>

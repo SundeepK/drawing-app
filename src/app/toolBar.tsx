@@ -11,14 +11,18 @@ interface OnColorChange {
 export type ToolBarProps = {
   onColorChange: OnColorChange;
   onClear: React.MouseEventHandler<HTMLButtonElement>;
+  onBrushSizeChange: (size: string) => void;
+  onFillClicked: () => void;
 }
 
 export function ToolBar(props: ToolBarProps) {
 
   return (
     <div className={styles.toolOne}>
-      <CompactPicker onChangeComplete={props.onColorChange} />
-      <ToolBarItems onClearButtonClick={props.onClear}></ToolBarItems>
+      <CompactPicker onChangeComplete={props.onColorChange}/>
+      <ToolBarItems onClearButtonClick={props.onClear}
+                    onFillClicked={props.onFillClicked}
+                    onBrushSizeChange={props.onBrushSizeChange}/>
     </div>
   )
 
